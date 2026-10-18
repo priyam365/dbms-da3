@@ -1,0 +1,6 @@
+# Placeholder — Pydantic models will be added here.
+# Example modules to create:
+#   case.py     — CaseCreate, CaseRead, CaseUpdate
+#   person.py   — PersonCreate, PersonRead
+#   officer.py  — OfficerCreate, OfficerRead
+#   crime.py    — CrimeCreate, CrimeRead

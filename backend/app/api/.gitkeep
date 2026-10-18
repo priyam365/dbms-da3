@@ -1,0 +1,7 @@
+# Placeholder — API route files will be added here.
+# Example modules to create:
+#   cases.py    — CRUD for crime cases
+#   persons.py  — CRUD for suspects/victims
+#   officers.py — CRUD for police officers
+#   crimes.py   — CRUD for crime types
+#   locations.py — CRUD for locations

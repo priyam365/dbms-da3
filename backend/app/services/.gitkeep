@@ -1,0 +1,5 @@
+# Placeholder — Business logic and Cypher query functions go here.
+# Example modules to create:
+#   case_service.py    — functions like create_case(), get_case_by_id()
+#   person_service.py  — functions for person nodes
+#   officer_service.py — functions for officer nodes

@@ -1,0 +1,8 @@
+# Placeholder — React components go here after `npm create vite@latest` is run.
+# Suggested structure:
+# src/
+#   components/   — Reusable UI pieces (Navbar, Table, Card, Badge)
+#   pages/        — Full pages (Dashboard, Cases, Officers, Persons)
+#   services/     — API call functions (api.js or axios config)
+#   main.jsx      — React app entry point
+#   App.jsx       — Root component with routing

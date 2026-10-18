@@ -886,8 +886,7 @@ def delete_court(court_id: str) -> bool:
 
 def get_dashboard_stats() -> Dict[str, Any]:
     """
-    Return aggregated counts and breakdown charts.
-    Uses a single chained Cypher for efficiency.
+    Return aggregated metrics and breakdowns matching DashboardStats schema.
     """
     counts = _run(
         "MATCH (s:PoliceStation) WITH count(s) AS stations "
@@ -898,9 +897,10 @@ def get_dashboard_stats() -> Dict[str, Any]:
         "MATCH (v:Victim)        WITH stations, officers, firs, crimes, criminals, count(v) AS victims "
         "MATCH (e:Evidence)      WITH stations, officers, firs, crimes, criminals, victims, count(e) AS evidence "
         "MATCH (a:Arrest)        WITH stations, officers, firs, crimes, criminals, victims, evidence, count(a) AS arrests "
+        "MATCH (ct:Court)       WITH stations, officers, firs, crimes, criminals, victims, evidence, arrests, count(ct) AS courts "
         "MATCH (ic) WHERE ic:InvestigationCase OR ic:Case "
         "RETURN stations, officers, firs, crimes, criminals, victims, "
-        "       evidence, arrests, count(ic) AS cases"
+        "       evidence, arrests, courts, count(ic) AS cases"
     )
     crime_types = _run(
         "MATCH (c:Crime) "
@@ -912,23 +912,46 @@ def get_dashboard_stats() -> Dict[str, Any]:
         "RETURN coalesce(ic.status, ic.caseStatus, 'Unknown') AS status, "
         "       count(ic) AS count"
     )
+    case_priority = _run(
+        "MATCH (ic) WHERE ic:InvestigationCase OR ic:Case "
+        "RETURN coalesce(ic.priority, 'Medium') AS priority, "
+        "       count(ic) AS count"
+    )
     fir_status = _run(
         "MATCH (f:FIR) RETURN f.status AS status, count(f) AS count"
     )
+    arrest_status = _run(
+        "MATCH (a:Arrest) RETURN a.status AS status, count(a) AS count"
+    )
+    recent_cases = _run(
+        "MATCH (ic) WHERE ic:InvestigationCase OR ic:Case "
+        "RETURN ic {.*} AS c ORDER BY ic.openedDate DESC LIMIT 5"
+    )
+    recent_firs = _run(
+        "MATCH (f:FIR) RETURN f {.*} AS f ORDER BY f.registrationDate DESC LIMIT 5"
+    )
     base = counts[0] if counts else {}
     return {
-        "totalStations": base.get("stations", 0),
-        "totalOfficers": base.get("officers", 0),
-        "totalFIRs": base.get("firs", 0),
-        "totalCrimes": base.get("crimes", 0),
-        "totalCriminals": base.get("criminals", 0),
-        "totalVictims": base.get("victims", 0),
-        "totalEvidence": base.get("evidence", 0),
-        "totalArrests": base.get("arrests", 0),
-        "totalCases": base.get("cases", 0),
-        "crimeTypeBreakdown": crime_types,
-        "caseStatusBreakdown": case_status,
-        "firStatusBreakdown": fir_status,
+        "counts": {
+            "stations": base.get("stations", 0),
+            "officers": base.get("officers", 0),
+            "firs": base.get("firs", 0),
+            "crimes": base.get("crimes", 0),
+            "criminals": base.get("criminals", 0),
+            "victims": base.get("victims", 0),
+            "cases": base.get("cases", 0),
+            "evidence": base.get("evidence", 0),
+            "arrests": base.get("arrests", 0),
+            "courts": base.get("courts", 0),
+        },
+        "cases_by_status": {r["status"]: r["count"] for r in case_status if r.get("status")},
+        "cases_by_priority": {r["priority"]: r["count"] for r in case_priority if r.get("priority")},
+        "crimes_by_type": {r["type"]: r["count"] for r in crime_types if r.get("type")},
+        "firs_by_status": {r["status"]: r["count"] for r in fir_status if r.get("status")},
+        "arrests_by_status": {r["status"]: r["count"] for r in arrest_status if r.get("status")},
+        "recent_cases": [r["c"] for r in recent_cases],
+        "recent_firs": [r["f"] for r in recent_firs],
+        "mode": "neo4j",
     }
 
 
